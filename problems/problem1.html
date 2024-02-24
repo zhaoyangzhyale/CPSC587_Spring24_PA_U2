@@ -21,11 +21,19 @@
 </head>
 <body>
 <script type="module">
-    import {print_var_to_document} from "../js/utils/utils_general.js";
+    import {get_default_lil_gui, ThreeEngine} from "../js/utils/utils_three.js";
 
-    // todo: use a forEach loop on this array to calculate the factorial 10!
-    // todo: then print the answer to the document using print_var_to_document
-    let a = [1,2,3,4,5,6,7,8,9,10];
+    // todo: use the gui initialized below to control the position of a 3D sphere.
+    // todo: the sphere should be movable along the ranges x: [-2,2], y: [-2, 2], z: [-2, 2].
+    // todo:  The sphere should have a radius of 0.04 and can be any color/ opacity you want.
+
+    let engine = ThreeEngine.new_default_3d();
+
+    let gui = get_default_lil_gui();
+
+    engine.animation_loop(() => {
+
+    });
 
 </script>
 </body>

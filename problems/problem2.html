@@ -21,11 +21,21 @@
 </head>
 <body>
 <script type="module">
-    import {print_var_to_document} from "../js/utils/utils_general.js";
+    import {get_default_lil_gui, ThreeEngine, refresh_displays} from "../js/utils/utils_three.js";
 
-    // todo: use the map function to get an array that doubles the value of every element in the a array
-    // todo: then print the answer to the document using print_var_to_document
-    let a = [1,2,3,4,5,6,7,8,9,10];
+    // todo: print the time elapsed as a string to the gui initialized.  Specifically,
+    // todo: the gui should be a window that has a single field that says
+    // todo: "Time Elapsed: x" where x is actually the time elapsed since the
+    // todo: program onset.  Make sure that this output is updating correctly at each frame
+    // todo: hint: you'll have to use the refresh_displays function.
+
+    let engine = ThreeEngine.new_default_3d();
+
+    let gui = get_default_lil_gui();
+
+    engine.animation_loop(() => {
+
+    });
 
 </script>
 </body>
