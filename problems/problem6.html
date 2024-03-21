@@ -20,12 +20,121 @@
 </head>
 <body>
 <script type="module">
-    import {ThreeEngine} from "../js/utils/utils_three.js";
+    import {ThreeEngine, get_default_lil_gui, refresh_displays} from "../js/utils/utils_three.js";
+    import {print_var_to_document} from "../js/utils/utils_general.js";
 
     // todo: recreate this visualization, demonstrating your understanding of displacement-based distance in SE(2)
     // todo: https://yale-cpsc-487-587-internal-djrakita-c95fa6c3239a481a48d29a6b0fd.gitlab.io/html/visualizations/SE2_distance2.html
     // todo: make sure you are using the displacement-based distance!
     // todo: or, feel free to come up with any visualization here that demonstrates your understanding of SE(2) distance
+
+    let settings = {
+        mesh_visible: true,
+        draw_points: true,
+        wireframe_visible: true,
+        point_size: 0.02,
+        theta1: 0.0,
+        tx1: 0,
+        ty1: 0,
+        theta2: 0.0,
+        tx2: 0,
+        ty2: 0,
+    }
+
+    let actions = {
+        reset1: function() {
+            settings.theta1 = 0.0;
+            settings.tx1 = 0.0;
+            settings.ty1 = 0.0;
+            refresh_displays(gui);
+        },
+        reset2: function() {
+            settings.theta2 = 0.0;
+            settings.tx2 = 0.0;
+            settings.ty2 = 0.0;
+            refresh_displays(gui);
+        }
+    };
+
+    let gui = get_default_lil_gui();
+    gui.add(settings, 'theta1', -Math.PI, Math.PI).name('Theta 1');
+    gui.add(settings, 'tx1', -2, 2).name('tx1');
+    gui.add(settings, 'ty1', -2, 2).name('ty1');
+    gui.add(actions, 'reset1').name('Reset 1');
+    gui.add(settings, 'theta2', -Math.PI, Math.PI).name('Theta 2');
+    gui.add(settings, 'tx2', -2, 2).name('tx2');
+    gui.add(settings, 'ty2', -2, 2).name('ty2');
+    gui.add(actions, 'reset2').name('Reset 2');
+    let disController = gui.add({Distance: (0.).toString()}, 'Distance').name('disp based dis');
+
+    let engine = ThreeEngine.new_default_2d();
+
+
+    function se2_transform(vector, transform) {
+        let x = transform[0][0] * vector[0][0] + transform[0][1] * vector[1][0] + transform[0][2];
+        let y = transform[1][0] * vector[0][0] + transform[1][1] * vector[1][0] + transform[1][2];
+        
+        return [[x], [y]];
+    }
+
+    engine.animation_loop(() => {
+        let m1 = [[Math.cos(settings.theta1), -Math.sin(settings.theta1), settings.tx1], [Math.sin(settings.theta1), Math.cos(settings.theta1), settings.ty1], [0, 0, 1]];
+        let m2 = [[Math.cos(settings.theta2), -Math.sin(settings.theta2), settings.tx2], [Math.sin(settings.theta2), Math.cos(settings.theta2), settings.ty2], [0, 0, 1]];
+        let disp = math.multiply(math.inv(m1), m2);
+        
+        let a1 = math.atan2(disp[1][0], disp[0][0]);
+        let p, q;
+        if (math.abs(a1) < 0.0001) {
+            p = 1 - a1 * a1 / 6 + a1 * a1 * a1 * a1 / 120;
+            q = a1 / 2 - a1 * a1 * a1 / 24 + a1 * a1 * a1 * a1 * a1 / 720;
+        } else {
+            p = math.sin(a1) / a1;
+            q = (1 - math.cos(a1)) / a1;
+        }
+        let p2q2 = p * p + q * q;
+        let a2 = 1 / p2q2 * (p * disp[0][2] + q * disp[1][2]);
+        let a3 = 1 / p2q2 * (-q * disp[0][2] + p * disp[1][2]);
+
+        disController.setValue(math.sqrt(a1 * a1 + a2 * a2 + a3 * a3));
+
+
+
+        engine.draw_debug_vector(
+            se2_transform([[0], [0]], m1),
+            se2_transform([[1], [0]], m1),
+            0.03,
+            0.15,
+            0xff0000,
+            0.9
+        );
+
+        engine.draw_debug_vector(
+            se2_transform([[0], [0]], m1),
+            se2_transform([[0], [1]], m1),
+            0.03,
+            0.15,
+            0x00ff00,
+            0.9
+        );
+
+        engine.draw_debug_vector(
+            se2_transform([[0], [0]], m2),
+            se2_transform([[1], [0]], m2),
+            0.03,
+            0.15,
+            0x770000,
+            0.9
+        );
+
+        engine.draw_debug_vector(
+            se2_transform([[0], [0]], m2),
+            se2_transform([[0], [1]], m2),
+            0.03,
+            0.15,
+            0x007700,
+            0.9
+        );
+    });
 
 </script>
 </body>
