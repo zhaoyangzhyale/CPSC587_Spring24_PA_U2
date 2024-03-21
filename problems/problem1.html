@@ -30,8 +30,18 @@
 
     let gui = get_default_lil_gui();
 
-    engine.animation_loop(() => {
+    let spherePosition = {x: 0, y: 0, z: 0};
 
+    gui.add(spherePosition, 'x', -2, 2).onChange(updateSpherePosition);
+    gui.add(spherePosition, 'y', -2, 2).onChange(updateSpherePosition);
+    gui.add(spherePosition, 'z', -2, 2).onChange(updateSpherePosition);
+
+    function updateSpherePosition() {
+        engine.draw_debug_sphere([spherePosition.x, spherePosition.y, spherePosition.z], 0.04, 0x555555, 1.0);
+    }
+
+    engine.animation_loop(() => {
+        updateSpherePosition();
     });
 
 </script>

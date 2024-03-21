@@ -20,12 +20,93 @@
 </head>
 <body>
 <script type="module">
-    import {ThreeEngine} from "../js/utils/utils_three.js";
+    import {ThreeEngine, get_default_lil_gui, refresh_displays} from "../js/utils/utils_three.js";
+    import {print_var_to_document} from "../js/utils/utils_general.js";
 
     // todo: recreate this visualization, demonstrating your understanding of SO(2)
     // todo: https://yale-cpsc-487-587-internal-djrakita-c95fa6c3239a481a48d29a6b0fd.gitlab.io/html/visualizations/point_mapping_2D_so2.html
     // todo: (no need to draw the unit circle here)
     // todo: or, feel free to come up with any visualization here that demonstrates your understanding of SO(2)
+
+    let settings = {
+        mesh_visible: true,
+        draw_points: true,
+        wireframe_visible: true,
+        point_size: 0.02,
+        theta: 0.0,
+    }
+
+    let actions = {
+        reset_matrix: function() {
+            settings.theta = 0.0;
+            refresh_displays(gui);
+        }
+    };
+
+    let gui = get_default_lil_gui();
+    gui.add(settings, 'draw_points').name('Draw Points');
+    gui.add(settings, 'wireframe_visible').name('Draw Wireframe');
+    gui.add(settings, 'mesh_visible').name('Draw Mesh');
+    gui.add(settings, 'point_size', 0.001, 0.03).name('Point Size');
+
+    let folder = gui.addFolder('Mapping');
+    folder.add(settings, 'theta', -Math.PI, Math.PI).name('Theta');
+    folder.add(actions, 'reset_matrix').name('Reset Matrix');
+    let determinantController = folder.add({Determinant: 0.}, 'Determinant').name('Determinant: ');
+
+    let engine = ThreeEngine.new_default_2d();
+
+    engine.add_suzanne_monkey_as_mesh_object(0x00eeff);
+    engine.toggle_mesh_object_wireframe_visibility(0);
+
+    let standard_points = engine.get_local_vertex_positions_of_mesh_object(0);
+    let wireframe_points = engine.get_local_vertex_positions_of_mesh_object_wireframe(0);
+
+    function multiply_2x2_matrix_and_2x1_vector(m, vector) {
+        let x = m[0][0] * vector[0][0] + m[0][1] * vector[1][0];
+        let y = m[1][0] * vector[0][0] + m[1][1] * vector[1][0];
+        
+        return [[x], [y]];
+    }
+
+    engine.animation_loop(() => {
+        let m = [[Math.cos(settings.theta), -Math.sin(settings.theta)], [Math.sin(settings.theta), Math.cos(settings.theta)]];
+        determinantController.setValue(m[0][0] * m[1][1] - m[0][1] * m[1][0]);
+
+        let new_standard_points = standard_points.map(x => multiply_2x2_matrix_and_2x1_vector(m, x));
+        let new_wireframe_points = wireframe_points.map(function(x) {return multiply_2x2_matrix_and_2x1_vector(m, x);});
+
+        engine.update_vertex_positions_of_mesh_object(0, new_standard_points);
+        engine.update_vertex_positions_of_mesh_object_wireframe(0, new_wireframe_points);
+
+        if (settings.draw_points) {
+            new_standard_points.forEach(x =>
+                engine.draw_debug_sphere(x, settings.point_size, 0xeeee00)
+            )
+        }
+        
+        engine.mesh_objects[0].visible = settings.mesh_visible;
+        engine.set_mesh_object_wireframe_visibility(0, settings.wireframe_visible);
+
+        engine.draw_debug_vector(
+            [0, 0],
+            multiply_2x2_matrix_and_2x1_vector(m, [[1], [0]]),
+            0.03,
+            0.15,
+            0xff0000,
+            0.9
+        );
+
+        engine.draw_debug_vector(
+            [0, 0],
+            multiply_2x2_matrix_and_2x1_vector(m, [[0], [1]]),
+            0.03,
+            0.15,
+            0x00ff00,
+            0.9
+        );
+    });
+
 
 
 </script>
